@@ -12,11 +12,14 @@ body
     background: #1C2D33;
     max-width: 500px;
 }
+#left
+{
+    margin-left: 20px;
+}
 h1
 {
     color: #009699;
     font-size: 50px;
-    margin-left: 20px;
 }
 h2
 {
