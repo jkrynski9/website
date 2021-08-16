@@ -1,33 +1,87 @@
+@font-face{
+	font-family: 'DS';
+	src: url('./Nintendo-DS-BIOS.ttf') format('truetype');
+}
+*{
+	font-family:'DS';
+	font-size: 110%;
+}
 body
 {
-    background: #000000;
-    color: #277C99;
+	background: #000000;
+	color: #277C99;
+}
+div {
+	margin: auto;
 }
 #box
 {
-    margin: 20px;
-    outline-width: thick;
-    outline-color: #1C2D33;
-    outline-style: dashed;
-    background: #1C2D33;
-    max-width: 500px;
+	margin: 20px left;
+	outline-width: thick;
+	outline-color: #1C2D33;
+	outline-style: dashed;
+	background: #1C2D33;
+	max-width: 500px;
+	text-align: left;
 }
 #left
 {
-    margin-left: 20px;
+	margin-left: 20px;
+	text-align:left;
+}
+#center
+{
+	text-align: center;
+}
+#box-center
+{
+	margin: 20px left;
+	text-align: center;
+	outline-width: thick;
+	outline-color: #1C2D33;
+	outline-style: dashed;
+	background: #1C2D33;
+	max-width: 500px;
+}
+#right
+{
+	text-align: right;
+	margin-right: 20px;
 }
 h1
 {
-    color: #009699;
-    font-size: 50px;
+	color: #009699;
+	font-size: 300%;
+	margin: 20px;
 }
 h2
 {
-    color: #009699;
-    margin-left: 20px;
+	color: #009699;
+	margin-left: 20px;
+}
+h3
+{
+	margin-left: 20px;
 }
 a
 {
-    color: #277C99;
-    border-bottom-color: #277C99;
+	color: #277C99;
+	border-bottom-color: #277C99;
+}
+
+code
+{
+	display: block;
+	background-color: #333333;
+	color: #CCCCCC;
+	white-space: pre;
+	margin: 0px 100px 0px 100px;
+	outline: thick solid #333333;
+}
+
+hr
+{
+	border: 0;
+	border-bottom: 2px dashed #009699;
+	background: #000000;
 }

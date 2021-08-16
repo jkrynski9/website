@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>RafiX's weblog - 2019-04-09</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="../../style.css">
+	<link rel="stylesheet" href="../weblog.css">	
+</head>
+<body>
+	<h1>Using Raspberry Pi Zero as an ISP programmer.</h1>
+	<hr>
+	<p>Since I have some free time right now, I decided to find something to work on/tinker/play with. After having a coffee, browsing Internet and looking around my room, I noticed that I still have my ATMega8, ATTiny13 and thought about putting them to use. But there's a problem. I don't have any working programmer for it.</p>
+	<p>I ordered an USBasp, but it came broken, one diode was flying loose in the packaging. Very smart and very talented me decided to repair it by himself, using his cheap soldering iron. The part was SMD, and I have exactly 0 skill in soldering SMD stuff (not even talking about my iron being capable of soldering SMD…). Of course something went bad in the process of repairing it, and some other part went loose. I gave up with it, threw it in a drawer, maybe some day I'll manage to repair it. The idea now was to use one of PCs I have lying around with LPT, make a programmer using it and continue with stuff I planned to make. This went a little better, but programmer won't work with software for some reason (guess I had some different schematics than the one used by software I had). I had other things to do, so the programmer landed in my electronics parts bin and to this day waits for correcting the connections. I don't have a working PC with LPT right now (at least one that's good for working with AVR-GCC compiler), so I have to think of ANOTHER way to use those micros.</p>
+	<div id="center"><img width="40%" height="40%" src="usbasp.png" alt="USBasp schematics."><br>It was either D1 or D2 that was broken. My great SMD soldering skills fucked up some capacitor.</div>
+	<p>Then I reminded myself of a thing I saw online. It was about using Raspberry Pi as an ISP programmer, for AVR micros or Arduino using bitbanging on GPIO. But guess which RPi I have got GPIO pins soldered in. Is it:</p>
+	<ul>
+		<li>Raspberry Pi Zero, which got no WiFi or any connection to Internet?</li>
+		<li>Raspberry Pi Zero W, which got WiFi to connect to Internet?</li>
+	</ul>
+	<p>If you thought "Idiot soldered pins to Pi with no WiFi", you're damn right. RPi Zero W was my home server at the moment, and I didn't wanted to turn it off etc to solder the pins there. And I don't have another set of pins to solder in. Having internet connection is useful, and I'm too lazy to download every library etc. manually. The plan goes like that then:</p>
+	<ul>
+		<li>Get some spare MicroSD card I have, put Raspbian Lite on it.</li>
+		<li>Configure WiFi on RPi Zero W.</li>
+		<li>Download and install/compile everything I need (still on Zero W).</li>
+		<li>After doing everything, take out MicroSD card out of Zero W, and put it in Zero to use it.</li>
+	</ul>
+	<p>So I got a plan, got my second coffee and everything I need and I'm ready to go. Later when I'll buy some pins for Zero W, I can switch to it instead (writing code on my PC and uploading it to RPi via SSH instead of doing everything on Pi then, no need for screen and another keyboard). Image is being transferred to mSD card, I'm drinking more coffee and writing this. Raspbian lite image is now 1.7GB, it wasn't that big before from what I remember… Okay, image is written on mSD card, now wpa_supplicant config and enabling SSH. Time to put the card in RPi, and hope everything will work now.</p>
+	<p>One minor fuckup and tons of updates later… At the same time, I've got an idea of using (if it's working with raspbian) WiFi dongle I have, so I can already use SSH. Needs non-free repos, but I'm okay with that (and found out that pi got it enable ootb). So I only need to install firmware-atheros, and that should be it. And we got a success, I have RPi working with my WiFi dongle and I can use SSH.</p>
+	<p>Now, back to installing avrdude for uploading code. You need to install some libraries, then compile it manually (I haven't seen online if avrdude included in repo got GPIO support, every source says about compiling it so I'll do that).</p>
+	<code>	sudo apt-get install -y build-essential bison flex automake libelf-dev libusb-1.0-0-dev libusb-dev libftdi-dev libftdi1
+	wget http://download.savannah.gnu.org/releases/avrdude/avrdude-6.1.tar.gz
+	tar xvfz avrdude-6.1.tar.gz
+	cd avrdude-6.1
+	./configure --enable-linuxgpio</code>
+	<p>Make sure configuration summary shows that linuxgpio is enabled, should be at the bottom. If it does, then you can proceed with:</p>
+	<code>	make
+	sudo make install</code>
+	<p>This will take some time, so be patient and do something in this time (I'm eating dinner while eating this). My RPi hang when make ended, that was weird. avrdude compiled tho, and it's working.</p>
+	<p>After compiling and installing, make sure avrdude is working:</p>
+	<code>	avrdude -v</code>
+	<p>If avrdude is working, then we can proceed to configuration. Go to:</p>
+	<code>	/usr/local/etc/avrdude.conf</code>
+	<p>Go to the end of file with text editor of your preference. Add those lines:</p>
+	<code>	# Raspberry Pi GPIO configuration for avrdude.
+	programmer
+		id    = "pi";
+		desc  = "Using the Linux sysfs interface to bitbang GPIO lines";
+		type  = "linuxgpio";
+		reset = 12;
+		sck   = 24;
+		mosi  = 23;
+		miso  = 18;
+	;</code>
+	<p>At this point, something was wrong (something with permisions to GPIO, or bug in avrdude…), and I'm too pissed with it to continue. Gonna take a break, continue later or tommorow.</p>
+	<h2>2019-04-12</h2>
+	<p>Time to continue working. first I'll try using avrdude in version 6.1 (version other people used). Compiling… So it was a fucking fault or avrdude version 6.3. Changed version in commands to download it, so other people won't have a problem.</p>
+	<p>Now we can proceed to connecting our microcontroller to our Raspberry Pi. It all depends on what you want to use, just look at datasheet (available online) and connect to right GPIO on Raspberry Pi, also connect 5v and GND (first check if you don't need a lower voltage, or you will probably damage the chip). To use avrdude with GPIO use command like that:</p>
+	<code>	avrdude -c pi -p t13 -B8 -v</code>
+	<p>Change parameter after '-p' to use a different chip, and if you used different ID in config change it there too, after '-c'. I won't talk much about coding and uploading code to AVR microcontrollers, since I don't know much about it yet (I will make an tutorial later I think). So for now that's all, thank you for reading (if you managed to get there :p), if you have any questions (but don't except any miracles, not really an expert) or want to give me feedback about my writing etc. feel free to message me on my email, XMPP or IRC. Everything's on my page. Thanks again for reading, and goodnight (for me).</p>
+	<hr><h2 id="right"><a href="../index.html">Back to the weblog's main page.</a></h2>
+</body>
+</html>
